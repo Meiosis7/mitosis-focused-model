@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>有丝分裂互动模型</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --card: rgba(8, 21, 31, 0.88);
+      --card-2: rgba(13, 31, 43, 0.74);
+      --line: rgba(78, 231, 255, 0.18);
+      --ink: #ecfbff;
+      --muted: #93adba;
+      --green: #59f0b0;
+      --cyan: #55dcff;
+      --teal: #178a7c;
+      --violet: #915ff2;
+      --yellow: #ffe178;
+      --danger: #ff637d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: auto;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(85, 220, 255, 0.14), transparent 30%),
+        radial-gradient(circle at 90% 22%, rgba(89, 240, 176, 0.10), transparent 26%),
+        linear-gradient(180deg, #09131c, #050a10 72%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1220px, 100%);
+      margin: 0 auto;
+      padding: 6px 28px 28px;
+      display: grid;
+      gap: 26px;
+    }
+
+    .stage-card,
+    .info-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(12, 29, 41, 0.84), rgba(5, 14, 21, 0.92));
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.24), inset 0 0 28px rgba(85, 220, 255, 0.035);
+      overflow: hidden;
+    }
+
+    .stage-card {
+      position: relative;
+      height: min(74vh, 860px);
+      min-height: 610px;
+    }
+
+    .stage-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        linear-gradient(90deg, rgba(85, 220, 255, 0.045), transparent 18%, transparent 82%, rgba(89, 240, 176, 0.04)),
+        repeating-linear-gradient(0deg, transparent 0 14px, rgba(236, 251, 255, 0.018) 15px);
+      mix-blend-mode: screen;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-header {
+      position: absolute;
+      z-index: 2;
+      top: 28px;
+      left: 30px;
+      right: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 17px;
+      line-height: 1;
+      font-weight: 900;
+      text-shadow: 0 0 18px rgba(89, 240, 176, 0.32);
+    }
+
+    h1 {
+      margin: 14px 0 0;
+      font-size: clamp(28px, 3.2vw, 44px);
+      line-height: 1.02;
+      font-weight: 950;
+      color: var(--ink);
+      text-shadow: 0 0 24px rgba(85, 220, 255, 0.16);
+    }
+
+    .stage-controller {
+      display: grid;
+      grid-template-columns: 42px minmax(112px, 1fr) 42px;
+      align-items: center;
+      min-width: 224px;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(89, 240, 176, 0.16);
+      color: #cffff0;
+      border: 1px solid rgba(89, 240, 176, 0.24);
+      box-shadow: 0 0 26px rgba(89, 240, 176, 0.12);
+      pointer-events: auto;
+      gap: 6px;
+    }
+
+    .stage-control-wrap {
+      display: grid;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .stage-controller button {
+      appearance: none;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(85, 220, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(5, 14, 21, 0.48);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 24px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .stage-controller button:hover {
+      border-color: rgba(89, 240, 176, 0.42);
+      box-shadow: 0 0 14px rgba(89, 240, 176, 0.15);
+    }
+
+    .stage-name {
+      text-align: center;
+      font-size: 17px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .cell-type-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(85, 220, 255, 0.16);
+      background: rgba(5, 14, 21, 0.48);
+    }
+
+    .cell-type-switch button {
+      appearance: none;
+      min-height: 34px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .cell-type-switch button.active {
+      color: #041015;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+
+    .info-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: rgba(5, 14, 21, 0.58);
+      border-bottom: 1px solid rgba(85, 220, 255, 0.16);
+    }
+
+    .tab-btn {
+      appearance: none;
+      min-height: 60px;
+      border: 0;
+      border-bottom: 4px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .tab-btn.active {
+      color: var(--green);
+      background: rgba(89, 240, 176, 0.07);
+      border-bottom-color: var(--teal);
+      text-shadow: 0 0 16px rgba(89, 240, 176, 0.28);
+    }
+
+    .tab-panel {
+      padding: 30px 32px 30px;
+    }
+
+    .tab-panel[hidden] {
+      display: none;
+    }
+
+    .panel-title {
+      margin: 0 0 26px;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+
+    .body-text {
+      max-width: 1040px;
+      margin: 0;
+      color: #d5e8ee;
+      font-size: 17px;
+      line-height: 1.75;
+      font-weight: 650;
+    }
+
+    .callout {
+      margin-top: 28px;
+      padding: 20px 22px;
+      border-left: 6px solid var(--teal);
+      border-radius: 8px;
+      background: rgba(89, 240, 176, 0.08);
+      color: #e6fbf7;
+      font-size: 16px;
+      line-height: 1.7;
+      font-weight: 750;
+    }
+
+    .data-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 170px;
+      padding: 4px;
+      border-radius: 9px;
+      border: 1px solid rgba(85, 220, 255, 0.22);
+      background: rgba(5, 14, 21, 0.7);
+    }
+
+    .segmented button {
+      min-height: 30px;
+      appearance: none;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .segmented button.active {
+      color: #041015;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .metric {
+      min-height: 104px;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(85, 220, 255, 0.14);
+      background: rgba(8, 24, 35, 0.64);
+    }
+
+    .metric label {
+      display: block;
+      color: #b6ced8;
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .metric .value {
+      margin-top: 18px;
+      color: var(--green);
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 18px rgba(89, 240, 176, 0.34);
+    }
+
+    .metric.bump .value {
+      animation: bump 520ms cubic-bezier(.2, 1.7, .3, 1);
+    }
+
+    @keyframes bump {
+      0% { transform: translateY(14px) scale(.78); opacity: .25; }
+      58% { transform: translateY(-6px) scale(1.12); opacity: 1; }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .observe-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(85, 220, 255, 0.13);
+      background: rgba(8, 24, 35, 0.54);
+      color: #d8eef3;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .mini-card strong {
+      color: var(--yellow);
+    }
+
+    .btn {
+      appearance: none;
+      min-height: 54px;
+      border: 1px solid rgba(85, 220, 255, 0.16);
+      border-radius: 10px;
+      background: rgba(18, 35, 48, 0.86);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 950;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(89, 240, 176, 0.38);
+      box-shadow: 0 0 18px rgba(89, 240, 176, 0.12);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(23, 138, 124, 0.95), rgba(19, 114, 137, 0.88));
+      color: white;
+    }
+
+    .badge-glow {
+      position: absolute;
+      z-index: 2;
+      right: 28px;
+      bottom: 24px;
+      display: grid;
+      gap: 8px;
+      min-width: 210px;
+      padding: 12px;
+      border: 1px solid rgba(85, 220, 255, 0.16);
+      border-radius: 10px;
+      background: rgba(3, 12, 18, 0.54);
+      backdrop-filter: blur(10px);
+    }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      align-items: center;
+      gap: 9px;
+      color: #cbeaf0;
+      font-size: 12px;
+    }
+
+    .mark {
+      width: 18px;
+      height: 8px;
+      border-radius: 999px;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .mark.violet { color: var(--violet); background: var(--violet); }
+    .mark.cyan { color: var(--cyan); background: var(--cyan); }
+    .mark.yellow { color: var(--yellow); background: var(--yellow); }
+
+    @media (max-width: 820px) {
+      .app { padding: 10px; gap: 14px; }
+      .stage-card { min-height: 560px; }
+      .hero-header { flex-direction: column; }
+      .stage-control-wrap { align-self: flex-start; }
+      .info-tabs, .data-grid, .observe-grid {
+        grid-template-columns: 1fr;
+      }
+      .tab-btn { min-height: 46px; font-size: 15px; }
+      .tab-panel { padding: 24px 18px; }
+      .body-text { font-size: 16px; }
+      .badge-glow { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="stage-card">
+      <canvas id="stage"></canvas>
+      <header class="hero-header">
+        <div>
+          <div class="eyebrow" id="modelEyebrow">2n=4 动物细胞模型</div>
+          <h1>有丝分裂互动模型</h1>
+        </div>
+        <div class="stage-control-wrap">
+          <div class="stage-controller" aria-label="时期控制器">
+            <button id="stagePrevBtn" type="button" aria-label="上一时期">‹</button>
+            <div class="stage-name" id="stageBadge">分裂间期</div>
+            <button id="stageNextBtn" type="button" aria-label="下一时期">›</button>
+          </div>
+          <div class="cell-type-switch" aria-label="细胞类型">
+            <button id="animalBtn" class="active" type="button">动物</button>
+            <button id="plantBtn" type="button">植物</button>
+          </div>
+        </div>
+      </header>
+      <div class="badge-glow">
+        <div class="legend-row"><i class="mark violet"></i><span>染色质 / 染色体</span></div>
+        <div class="legend-row"><i class="mark cyan"></i><span>纺锤丝</span></div>
+        <div class="legend-row"><i class="mark yellow"></i><span>着丝粒 / 赤道板</span></div>
+      </div>
+    </section>
+
+    <section class="info-card">
+      <div class="info-tabs" role="tablist" aria-label="信息区">
+        <button class="tab-btn active" data-tab="description" type="button">阶段说明</button>
+        <button class="tab-btn" data-tab="numbers" type="button">数量变化</button>
+        <button class="tab-btn" data-tab="observe" type="button">观察提示</button>
+      </div>
+
+      <div class="tab-panel" data-panel="description">
+        <h2 class="panel-title" id="phaseTitle">分裂间期 · 阶段说明</h2>
+        <p class="body-text" id="phaseDescription"></p>
+        <div class="callout" id="phaseCallout"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="numbers" hidden>
+        <div class="data-tools">
+          <span>染色体数显示方式</span>
+          <div class="segmented">
+            <button id="numericBtn" class="active" type="button">数字</button>
+            <button id="ploidyBtn" type="button">n表示</button>
+          </div>
+        </div>
+        <div class="data-grid">
+          <div class="metric" id="metricChromosomes"><label>染色体数</label><div class="value" id="chromosomesValue"></div></div>
+          <div class="metric" id="metricChromatids"><label>染色单体数</label><div class="value" id="chromatidsValue"></div></div>
+          <div class="metric" id="metricDna"><label>核DNA数</label><div class="value" id="dnaValue"></div></div>
+        </div>
+        <div class="callout" id="countNote"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="observe" hidden>
+        <h2 class="panel-title">观察提示</h2>
+        <div class="observe-grid">
+          <div class="mini-card" id="observeFocus"></div>
+          <div class="mini-card"><strong>重要提醒：</strong>赤道板是描述染色体排列位置的假想平面，显微镜下看不到真实结构；后期染色体数加倍来自着丝粒分裂，不是纺锤丝把染色体拉断。</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+
+    const phases = [
+      {
+        key: 'interphase',
+        name: '分裂间期',
+        short: '间期',
+        description: '细胞为分裂做准备，主要进行 DNA 复制和有关蛋白质合成。复制后，每条染色体由两条姐妹染色单体组成，但染色质仍较松散，细胞核保持完整。',
+        dynamic: '动态变化：染色质在细胞核内轻微舒展和摆动，表现 DNA 复制后为分裂做准备的连续状态。',
+        focus: '观察核膜是否完整、染色质是否松散。此时看不到清晰 X 形染色体。',
+        chromosomes: '4',
+        ploidy: '2n',
+        chromatids: '0→8',
+        dna: '4→8',
+        note: '2n=4 的动物细胞在复制后，染色体数仍为 4；增加的是染色单体数和 DNA 数。'
+      },
+      {
+        key: 'prophase',
+        name: '前期',
+        short: '前期',
+        description: '染色质逐渐螺旋化，凝缩成清晰可见的染色体；核膜逐渐解体，纺锤体开始形成。',
+        dynamic: '动态变化：松散染色质逐渐淡出，同时清晰 X 形染色体交叉叠化显现，核膜逐步消散。',
+        focus: '观察染色体是否开始变短变粗、核膜是否消失。',
+        chromosomes: '4',
+        ploidy: '2n',
+        chromatids: '8',
+        dna: '8',
+        note: '前期仍是 4 条染色体，每条含 2 条姐妹染色单体，因此染色单体数为 8。'
+      },
+      {
+        key: 'metaphase',
+        name: '中期',
+        short: '中期',
+        description: '染色体的着丝粒排列在细胞中央的赤道板位置，纺锤丝连接着丝粒，为平均分配做准备。',
+        dynamic: '动态变化：4 条 X 形染色体整齐排列在中央虚线附近。',
+        focus: '观察染色体是否排列在细胞中央。赤道板是假想平面，不是真实结构。',
+        chromosomes: '4',
+        ploidy: '2n',
+        chromatids: '8',
+        dna: '8',
+        note: '中期是观察染色体形态和数目的最佳时期。'
+      },
+      {
+        key: 'anaphase',
+        name: '后期',
+        short: '后期',
+        description: '着丝粒分裂，姐妹染色单体分开并成为独立染色体，分别向细胞两极移动。',
+        dynamic: '动态变化：X 形染色体分裂成 V 形结构，并带有向两极移动的拖尾效果。',
+        focus: '观察染色体数为什么从 4 变为 8：原因是着丝粒分裂，姐妹染色单体成为独立染色体。',
+        chromosomes: '8',
+        ploidy: '4n',
+        chromatids: '0',
+        dna: '8',
+        note: '后期染色体数短暂加倍，但 DNA 总量仍为 8。'
+      },
+      {
+        key: 'telophase',
+        name: '末期',
+        short: '末期',
+        description: '染色体到达两极后逐渐解螺旋，核膜重新形成；随后胞质分裂，形成两个遗传信息基本相同的子细胞。',
+        dynamic: '动态变化：中央出现分裂沟，两个子细胞逐渐形成。',
+        focus: '观察每个子细胞是否都恢复为 2n=4。',
+        chromosomes: '每个子细胞 4',
+        ploidy: '每个子细胞 2n',
+        chromatids: '0',
+        dna: '每个子细胞 4',
+        note: '末期按每个子细胞统计：染色体 4，染色单体 0，核 DNA 4。'
+      }
+    ];
+
+    const els = {
+      modelEyebrow: document.getElementById('modelEyebrow'),
+      stageBadge: document.getElementById('stageBadge'),
+      phaseTitle: document.getElementById('phaseTitle'),
+      phaseDescription: document.getElementById('phaseDescription'),
+      phaseCallout: document.getElementById('phaseCallout'),
+      observeFocus: document.getElementById('observeFocus'),
+      countNote: document.getElementById('countNote'),
+      chromosomesValue: document.getElementById('chromosomesValue'),
+      chromatidsValue: document.getElementById('chromatidsValue'),
+      dnaValue: document.getElementById('dnaValue'),
+      metricChromosomes: document.getElementById('metricChromosomes'),
+      metricChromatids: document.getElementById('metricChromatids'),
+      metricDna: document.getElementById('metricDna'),
+      stagePrevBtn: document.getElementById('stagePrevBtn'),
+      stageNextBtn: document.getElementById('stageNextBtn'),
+      animalBtn: document.getElementById('animalBtn'),
+      plantBtn: document.getElementById('plantBtn'),
+      numericBtn: document.getElementById('numericBtn'),
+      ploidyBtn: document.getElementById('ploidyBtn'),
+      tabButtons: document.querySelectorAll('.tab-btn'),
+      tabPanels: document.querySelectorAll('[data-panel]')
+    };
+
+    let w = 0;
+    let h = 0;
+    let dpr = 1;
+    let phaseIndex = 0;
+    let previousPhaseKey = 'interphase';
+    let phaseStart = performance.now();
+    let lastTime = phaseStart;
+    let displayMode = 'numeric';
+    let cellType = 'animal';
+    const chromatin = [];
+    const trails = [];
+    const dust = [];
+    const stars = [];
+
+    function phase() {
+      return phases[phaseIndex];
+    }
+
+    function progress() {
+      return Math.min(1, (performance.now() - phaseStart) / 1900);
+    }
+
+    function smoothstep(edge0, edge1, value) {
+      const x = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)));
+      return x * x * (3 - 2 * x);
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = rect.width;
+      h = rect.height;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seed();
+    }
+
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function seed() {
+      chromatin.length = 0;
+      stars.length = 0;
+      const c = cell();
+      for (let i = 0; i < 150; i++) {
+        const a = rand(0, Math.PI * 2);
+        const r = Math.sqrt(Math.random()) * c.nr * 0.78;
+        chromatin.push({ x: c.cx + Math.cos(a) * r, y: c.cy + Math.sin(a) * r, a, len: rand(18, 38), s: rand(.6, 1.4), alpha: rand(.22, .62) });
+      }
+      for (let i = 0; i < 110; i++) {
+        stars.push({ x: rand(0, w), y: rand(0, h), r: rand(.6, 1.8), p: rand(0, Math.PI * 2), a: rand(.05, .24) });
+      }
+    }
+
+    function cell() {
+      const size = Math.min(w, h);
+      return { cx: w / 2, cy: h * .56, rx: Math.min(w * .39, size * .47), ry: Math.min(h * .36, size * .38), nr: Math.min(size * .21, 175) };
+    }
+
+    function drawBackground(t) {
+      const g = ctx.createRadialGradient(w / 2, h * .55, 10, w / 2, h * .55, Math.max(w, h) * .68);
+      g.addColorStop(0, '#102b37');
+      g.addColorStop(.55, '#08151f');
+      g.addColorStop(1, '#050a10');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.save();
+      for (const s of stars) {
+        const pulse = .55 + Math.sin(t * .0018 + s.p) * .35;
+        ctx.fillStyle = `rgba(85,220,255,${s.a * pulse})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function glowLine(x1, y1, x2, y2, color, width, blur) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = blur;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawCell(c) {
+      const p = phase().key === 'telophase' ? progress() : 0;
+      ctx.save();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(89,240,176,.65)';
+      ctx.shadowColor = '#59f0b0';
+      ctx.shadowBlur = 20;
+      if (cellType === 'plant') {
+        const splitP = phase().key === 'telophase' ? Math.min(1, Math.max(0, (p - .55) / .45)) : 0;
+        const x = c.cx - c.rx;
+        const y = c.cy - c.ry;
+        const ww = c.rx * 2;
+        const hh = c.ry * 2;
+        const r = 30;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + ww - r, y);
+        ctx.quadraticCurveTo(x + ww, y, x + ww, y + r);
+        ctx.lineTo(x + ww, y + hh - r);
+        ctx.quadraticCurveTo(x + ww, y + hh, x + ww - r, y + hh);
+        ctx.lineTo(x + r, y + hh);
+        ctx.quadraticCurveTo(x, y + hh, x, y + hh - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.stroke();
+        ctx.globalAlpha = .08 * (1 - splitP * .75);
+        ctx.fillStyle = '#59f0b0';
+        ctx.fill();
+        if (splitP > 0) {
+          ctx.fillStyle = '#59f0b0';
+          ctx.globalAlpha = .075 * splitP;
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(c.cx - 5, y);
+          ctx.lineTo(c.cx - 5, y + hh);
+          ctx.lineTo(x + r, y + hh);
+          ctx.quadraticCurveTo(x, y + hh, x, y + hh - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(c.cx + 5, y);
+          ctx.lineTo(x + ww - r, y);
+          ctx.quadraticCurveTo(x + ww, y, x + ww, y + r);
+          ctx.lineTo(x + ww, y + hh - r);
+          ctx.quadraticCurveTo(x + ww, y + hh, x + ww - r, y + hh);
+          ctx.lineTo(c.cx + 5, y + hh);
+          ctx.closePath();
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      } else if (phase().key === 'telophase') {
+        const furrowP = Math.min(1, p / .7);
+        const splitP = Math.max(0, (p - .68) / .32);
+        ctx.beginPath();
+        for (let i = 0; i <= 360; i++) {
+          const a = i / 360 * Math.PI * 2;
+          const sx = Math.cos(a);
+          const sy = Math.sin(a);
+          const furrow = Math.exp(-Math.pow(sx * 3.2, 2)) * furrowP * c.ry * .94;
+          const x = c.cx + sx * c.rx;
+          const y = c.cy + sy * (c.ry - furrow);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.globalAlpha = 1 - splitP;
+        ctx.stroke();
+        ctx.globalAlpha = .08 * (1 - splitP);
+        ctx.fillStyle = '#59f0b0';
+        ctx.fill();
+        if (splitP > 0) {
+          const childRx = c.rx * .43;
+          const childRy = c.ry * .82;
+          const offset = c.rx * (.38 + .1 * splitP);
+          ctx.globalAlpha = splitP;
+          [-1, 1].forEach(side => {
+            ctx.beginPath();
+            ctx.ellipse(c.cx + side * offset, c.cy, childRx, childRy, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = splitP * .08;
+            ctx.fillStyle = '#59f0b0';
+            ctx.fill();
+            ctx.globalAlpha = splitP;
+          });
+        }
+      } else {
+        ctx.beginPath();
+        ctx.ellipse(c.cx, c.cy, c.rx, c.ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = .08;
+        ctx.fillStyle = '#59f0b0';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function nucleusCenters(c) {
+      if (phase().key === 'telophase') {
+        const splitP = Math.max(0, (progress() - .68) / .32);
+        const offset = c.rx * (.52 - .04 * splitP);
+        return [{ x: c.cx - offset, y: c.cy }, { x: c.cx + offset, y: c.cy }];
+      }
+      return [{ x: c.cx, y: c.cy }];
+    }
+
+    function drawNucleus(c, t) {
+      const key = phase().key;
+      let alpha = key === 'interphase' ? 1 : key === 'prophase' ? 1 - progress() : key === 'telophase' ? progress() : 0;
+      if (alpha <= .02) return;
+      for (const n of nucleusCenters(c)) {
+        const r = key === 'telophase' ? c.nr * .68 : c.nr;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = 'rgba(170,196,216,.8)';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([8, 8]);
+        ctx.lineDashOffset = -t * .025;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = alpha * .12;
+        ctx.fillStyle = '#b8c9d6';
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawChromatin(c, t) {
+      const key = phase().key;
+      if (!['interphase', 'prophase', 'telophase'].includes(key)) return;
+      const alpha = key === 'prophase'
+        ? 1 - smoothstep(.16, .72, progress())
+        : key === 'telophase'
+          ? Math.min(1, Math.max(0, (progress() - .38) / .52))
+          : 1;
+      if (alpha <= .02) return;
+      const centers = key === 'telophase' ? nucleusCenters(c) : [{ x: c.cx, y: c.cy }];
+      ctx.save();
+      for (const center of centers) {
+        for (let i = 0; i < chromatin.length; i++) {
+          const m = chromatin[i];
+          const sc = key === 'telophase' ? .56 : 1;
+          const wobble = Math.sin(t * .0012 * m.s + m.a) * 8;
+          const x = center.x + (m.x - c.cx) * sc + Math.cos(m.a + t * .001) * wobble;
+          const y = center.y + (m.y - c.cy) * sc + Math.sin(m.a + t * .0011) * wobble;
+          const a = m.a + Math.sin(t * .001 + i) * .7;
+          ctx.strokeStyle = `rgba(145,95,242,${m.alpha * alpha})`;
+          ctx.lineWidth = 3;
+          ctx.shadowColor = '#915ff2';
+          ctx.shadowBlur = 9;
+          ctx.beginPath();
+          ctx.moveTo(x - Math.cos(a) * m.len / 2, y - Math.sin(a) * m.len / 2);
+          ctx.quadraticCurveTo(x + Math.sin(a) * 9, y - Math.cos(a) * 9, x + Math.cos(a) * m.len / 2, y + Math.sin(a) * m.len / 2);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    function chromosomePositions(c) {
+      const key = phase().key;
+      const row = Math.min(96, c.ry * .34);
+      if (key === 'metaphase' || key === 'prophaseToMetaphase') {
+        return [
+          { x: c.cx, y: c.cy - row * 1.15, a: .42 },
+          { x: c.cx, y: c.cy - row * .38, a: -.42 },
+          { x: c.cx, y: c.cy + row * .38, a: .42 },
+          { x: c.cx, y: c.cy + row * 1.15, a: -.42 }
+        ];
+      }
+      if (key === 'prophase') {
+        return prophaseChromosomePositions(c);
+      }
+      return [
+        { x: c.cx - c.rx * .52 - 38, y: c.cy - 42, a: .62 },
+        { x: c.cx - c.rx * .52 + 38, y: c.cy + 38, a: -.48 },
+        { x: c.cx + c.rx * .52 - 38, y: c.cy + 42, a: .44 },
+        { x: c.cx + c.rx * .52 + 38, y: c.cy - 38, a: -.62 }
+      ];
+    }
+
+    function prophaseChromosomePositions(c) {
+        return [
+          { x: c.cx - 86, y: c.cy - 62, a: -.55 },
+          { x: c.cx + 74, y: c.cy - 46, a: .36 },
+          { x: c.cx - 58, y: c.cy + 58, a: .42 },
+          { x: c.cx + 92, y: c.cy + 52, a: -.32 }
+        ];
+    }
+
+    function displayChromosomePositions(c) {
+      if (phase().key !== 'metaphase') return chromosomePositions(c);
+      const p = 1 - Math.pow(1 - progress(), 3);
+      const from = prophaseChromosomePositions(c);
+      const to = chromosomePositions(c);
+      return to.map((target, i) => ({
+        x: from[i].x + (target.x - from[i].x) * p,
+        y: from[i].y + (target.y - from[i].y) * p,
+        a: from[i].a + (target.a - from[i].a) * p
+      }));
+    }
+
+    function xChromosome(x, y, scale, angle) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 8 * scale;
+      ctx.strokeStyle = '#915ff2';
+      ctx.shadowColor = '#915ff2';
+      ctx.shadowBlur = 20;
+      const len = 50 * scale;
+      const open = 14 * scale;
+      ctx.beginPath();
+      ctx.moveTo(-open, -len / 2);
+      ctx.quadraticCurveTo(-4 * scale, -12 * scale, 0, 0);
+      ctx.quadraticCurveTo(4 * scale, 12 * scale, open, len / 2);
+      ctx.moveTo(open, -len / 2);
+      ctx.quadraticCurveTo(4 * scale, -12 * scale, 0, 0);
+      ctx.quadraticCurveTo(-4 * scale, 12 * scale, -open, len / 2);
+      ctx.stroke();
+      ctx.fillStyle = '#ffe178';
+      ctx.shadowColor = '#ffe178';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(0, 0, 5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function vChromosome(x, y, scale, angle, flip, compact = false) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.scale(flip, 1);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = (compact ? 5.6 : 7) * scale;
+      ctx.strokeStyle = '#915ff2';
+      ctx.shadowColor = '#915ff2';
+      ctx.shadowBlur = compact ? 14 : 20;
+      const len = (compact ? 24 : 36) * scale;
+      const spread = (compact ? 13 : 18) * scale;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(spread, -len);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(spread, len);
+      ctx.stroke();
+      ctx.fillStyle = '#ffe178';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function anaphasePositions(c) {
+      const p = phase().key === 'telophase' ? 1 : 1 - Math.pow(1 - progress(), 3);
+      const d = c.rx * .48 * p;
+      const list = [];
+      const row = Math.min(124, c.ry * .44);
+      const metaphase = [
+        { x: c.cx, y: c.cy - row * 1.18, a: .42 },
+        { x: c.cx, y: c.cy - row * .39, a: -.42 },
+        { x: c.cx, y: c.cy + row * .39, a: .42 },
+        { x: c.cx, y: c.cy + row * 1.18, a: -.42 }
+      ];
+      metaphase.forEach(pos => {
+        list.push({ x: pos.x - d, y: pos.y, a: 0, flip: 1, side: 'left' });
+        list.push({ x: pos.x + d, y: pos.y, a: 0, flip: -1, side: 'right' });
+      });
+      return list;
+    }
+
+    function telophaseChromosomePositions(c) {
+      const p = Math.min(1, progress() / .62);
+      const from = anaphasePositions(c);
+      const chromTargets = chromosomePositions(c);
+      const leftTargets = chromTargets.slice(0, 2);
+      const rightTargets = chromTargets.slice(2);
+      return from.map((start, i) => {
+        const sideOrder = Math.floor(i / 2) % 2;
+        const target = start.side === 'left' ? leftTargets[sideOrder] : rightTargets[sideOrder];
+        return {
+          x: start.x + (target.x - start.x) * p,
+          y: start.y + (target.y - start.y) * p,
+          a: start.a + ((target.a || 0) - start.a) * p,
+          flip: start.flip
+        };
+      });
+    }
+
+    function addTrail(x, y) {
+      if (Math.random() < .55) trails.push({ x, y, life: 22, max: 22, vx: rand(-.8, .8), vy: rand(-.8, .8), r: rand(1.4, 3.4) });
+      if (trails.length > 150) trails.splice(0, trails.length - 150);
+    }
+
+    function drawTrails() {
+      ctx.save();
+      for (let i = trails.length - 1; i >= 0; i--) {
+        const tr = trails[i];
+        tr.x += tr.vx;
+        tr.y += tr.vy;
+        tr.life--;
+        const a = tr.life / tr.max;
+        ctx.fillStyle = `rgba(145,95,242,${a * .42})`;
+        ctx.shadowColor = '#915ff2';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, tr.r * a, 0, Math.PI * 2);
+        ctx.fill();
+        if (tr.life <= 0) trails.splice(i, 1);
+      }
+      ctx.restore();
+    }
+
+    function drawCentrosomes(left, right, alpha) {
+      if (cellType !== 'animal') return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      [left, right].forEach(center => {
+        const pulse = Math.sin(performance.now() * .004) * 1.5;
+        glowLine(center.x - 10, center.y - 3, center.x + 10, center.y - 3, 'rgba(85,220,255,.82)', 3, 12);
+        glowLine(center.x - 5, center.y + 8 + pulse, center.x + 7, center.y - 8 + pulse, 'rgba(85,220,255,.82)', 3, 12);
+        ctx.fillStyle = 'rgba(85,220,255,.9)';
+        ctx.shadowColor = '#55dcff';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    function drawSpindle(c) {
+      const key = phase().key;
+      if (key === 'interphase' || key === 'telophase') return;
+      const alpha = key === 'prophase' ? progress() : 1;
+      const left = { x: c.cx - c.rx * .72, y: c.cy };
+      const right = { x: c.cx + c.rx * .72, y: c.cy };
+      const targets = key === 'anaphase' ? anaphasePositions(c) : displayChromosomePositions(c);
+      ctx.save();
+      ctx.globalAlpha = alpha * .36;
+      targets.forEach(pos => {
+        if (key === 'anaphase') {
+          const pole = pos.side === 'left' ? left : right;
+          glowLine(pole.x, pole.y, pos.x, pos.y, 'rgba(85,220,255,.72)', 1.5, 10);
+        } else {
+          glowLine(left.x, left.y, pos.x, pos.y, 'rgba(85,220,255,.62)', 1.2, 9);
+          glowLine(right.x, right.y, pos.x, pos.y, 'rgba(85,220,255,.62)', 1.2, 9);
+        }
+      });
+      ctx.restore();
+      drawCentrosomes(left, right, alpha);
+    }
+
+    function drawEquator(c) {
+      if (phase().key !== 'metaphase') return;
+      ctx.save();
+      ctx.setLineDash([8, 12]);
+      ctx.lineDashOffset = -performance.now() * .04;
+      ctx.strokeStyle = 'rgba(255,225,120,.72)';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#ffe178';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(c.cx, c.cy - c.ry * .72);
+      ctx.lineTo(c.cx, c.cy + c.ry * .72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawChromosomes(c) {
+      const key = phase().key;
+      if (key === 'interphase') return;
+      if (key === 'anaphase') {
+        anaphasePositions(c).forEach(pos => {
+          addTrail(pos.x, pos.y);
+          vChromosome(pos.x, pos.y, .68, pos.a, pos.flip, true);
+        });
+        return;
+      }
+      if (key === 'telophase') {
+        ctx.save();
+        const fade = Math.max(0, 1 - progress() / .58);
+        ctx.globalAlpha = fade;
+        telophaseChromosomePositions(c).forEach(pos => vChromosome(pos.x, pos.y, .5 * fade + .18, pos.a, pos.flip, true));
+        ctx.restore();
+        return;
+      }
+      const rawP = key === 'prophase' ? smoothstep(.18, .78, progress()) : 1;
+      const p = Math.min(1, rawP);
+      displayChromosomePositions(c).forEach((pos, i) => {
+        const a = i / 4 * Math.PI * 2;
+        const sx = c.cx + Math.cos(a) * c.nr * .65;
+        const sy = c.cy + Math.sin(a) * c.nr * .65;
+        const ease = key === 'metaphase' ? 1 : 1 + 2.70158 * Math.pow(p - 1, 3) + 1.70158 * Math.pow(p - 1, 2);
+        if (key === 'prophase' && p <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = key === 'prophase' ? Math.min(.95, p * 1.08) : 1;
+        xChromosome(sx + (pos.x - sx) * ease, sy + (pos.y - sy) * ease, .14 + .70 * p, pos.a);
+        ctx.restore();
+      });
+    }
+
+    function drawCytokinesis(c) {
+      if (phase().key !== 'telophase') return;
+      const p = 1 - Math.pow(1 - progress(), 3);
+      if (cellType === 'plant') {
+        const len = c.ry * 1.78 * p;
+        const wallP = Math.min(1, Math.max(0, (progress() - .55) / .45));
+        const plateAlpha = p * (1 - wallP * .55);
+        glowLine(c.cx, c.cy - len / 2, c.cx, c.cy + len / 2, `rgba(255,225,120,${.78 * plateAlpha})`, 5, 18);
+        glowLine(c.cx - 10, c.cy - len / 2, c.cx - 10, c.cy + len / 2, `rgba(89,240,176,${.28 * plateAlpha})`, 1.5, 8);
+        glowLine(c.cx + 10, c.cy - len / 2, c.cx + 10, c.cy + len / 2, `rgba(89,240,176,${.28 * plateAlpha})`, 1.5, 8);
+        if (wallP > 0) {
+          const wallLen = c.ry * 1.86 * wallP;
+          glowLine(c.cx, c.cy - wallLen / 2, c.cx, c.cy + wallLen / 2, `rgba(89,240,176,${.78 * wallP})`, 6, 20);
+          glowLine(c.cx - 3, c.cy - wallLen / 2, c.cx - 3, c.cy + wallLen / 2, `rgba(207,255,240,${.28 * wallP})`, 1.2, 8);
+          glowLine(c.cx + 3, c.cy - wallLen / 2, c.cx + 3, c.cy + wallLen / 2, `rgba(207,255,240,${.28 * wallP})`, 1.2, 8);
+        }
+      } else {
+        glowLine(c.cx, c.cy - c.ry * .86, c.cx, c.cy + c.ry * .86, `rgba(255,225,120,${.42 * p})`, 2.4, 12);
+      }
+    }
+
+    function render(t) {
+      lastTime = t;
+      const c = cell();
+      drawBackground(t);
+      drawCell(c);
+      drawNucleus(c, t);
+      drawChromatin(c, t);
+      drawSpindle(c);
+      drawEquator(c);
+      drawTrails();
+      drawChromosomes(c);
+      drawCytokinesis(c);
+      requestAnimationFrame(render);
+    }
+
+    function setMetric(el, wrap, value) {
+      if (el.textContent === value) return;
+      el.textContent = value;
+      wrap.classList.remove('bump');
+      void wrap.offsetWidth;
+      wrap.classList.add('bump');
+    }
+
+    function setPhase(index) {
+      previousPhaseKey = phase().key;
+      phaseIndex = index;
+      phaseStart = performance.now();
+      trails.length = 0;
+      updateUI();
+    }
+
+    function updateUI() {
+      const p = phase();
+      els.modelEyebrow.textContent = cellType === 'animal' ? '2n=4 动物细胞模型' : '2n=4 植物细胞模型';
+      els.stageBadge.textContent = p.name;
+      els.phaseTitle.textContent = `${p.name} · 阶段说明`;
+      els.phaseDescription.textContent = p.description;
+      els.phaseCallout.innerHTML = `<strong>动态变化：</strong>${p.dynamic.replace('动态变化：', '')}`;
+      els.observeFocus.innerHTML = `<strong>本阶段看点：</strong>${p.focus}`;
+      if (p.key === 'prophase') {
+        if (cellType === 'animal') {
+          els.phaseDescription.textContent = '染色质逐渐螺旋化并凝缩成染色体；核膜逐渐解体，中心体移向两极并组织形成纺锤体。';
+          els.phaseCallout.innerHTML = '<strong>动态变化：</strong>染色质与染色体交叉叠化过渡；动物细胞前期以中心体作为纺锤体组织中心，画面用一对中心粒符号表示。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>动物细胞有中心体；高等植物细胞通常不表现中心体结构。';
+        } else {
+          els.phaseDescription.textContent = '染色质逐渐螺旋化并凝缩成染色体；核膜逐渐解体，细胞两极发出纺锤丝形成纺锤体。';
+          els.phaseCallout.innerHTML = '<strong>动态变化：</strong>染色质与染色体交叉叠化过渡；植物细胞前期不显示中心体，而是从细胞两极发出纺锤丝。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>植物细胞前期没有中心体符号，纺锤体由两极发出的纺锤丝形成。';
+        }
+      }
+      els.countNote.textContent = p.note;
+      if (phase().key === 'telophase' && cellType === 'plant') {
+        els.countNote.textContent = `${p.note} 植物细胞末期在赤道板位置形成细胞板，细胞板最终发育为新的细胞壁。`;
+      }
+      setMetric(els.chromosomesValue, els.metricChromosomes, displayMode === 'ploidy' ? p.ploidy : p.chromosomes);
+      setMetric(els.chromatidsValue, els.metricChromatids, p.chromatids);
+      setMetric(els.dnaValue, els.metricDna, p.dna);
+    }
+
+    function setTab(tab) {
+      els.tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      els.tabPanels.forEach(panel => panel.hidden = panel.dataset.panel !== tab);
+    }
+
+    function initEvents() {
+      addEventListener('resize', resize);
+      els.tabButtons.forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+      els.stagePrevBtn.addEventListener('click', () => setPhase((phaseIndex - 1 + phases.length) % phases.length));
+      els.stageNextBtn.addEventListener('click', () => setPhase((phaseIndex + 1) % phases.length));
+      els.animalBtn.addEventListener('click', () => {
+        cellType = 'animal';
+        els.animalBtn.classList.add('active');
+        els.plantBtn.classList.remove('active');
+        phaseStart = performance.now();
+        updateUI();
+      });
+      els.plantBtn.addEventListener('click', () => {
+        cellType = 'plant';
+        els.plantBtn.classList.add('active');
+        els.animalBtn.classList.remove('active');
+        phaseStart = performance.now();
+        updateUI();
+      });
+      els.numericBtn.addEventListener('click', () => {
+        displayMode = 'numeric';
+        els.numericBtn.classList.add('active');
+        els.ploidyBtn.classList.remove('active');
+        updateUI();
+      });
+      els.ploidyBtn.addEventListener('click', () => {
+        displayMode = 'ploidy';
+        els.ploidyBtn.classList.add('active');
+        els.numericBtn.classList.remove('active');
+        updateUI();
+      });
+    }
+
+    initEvents();
+    resize();
+    updateUI();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
