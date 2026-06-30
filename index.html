@@ -457,15 +457,14 @@
       <div class="tab-panel" data-panel="description">
         <h2 class="panel-title" id="phaseTitle">分裂间期 · 阶段说明</h2>
         <p class="body-text" id="phaseDescription"></p>
-        <div class="callout" id="phaseCallout"></div>
       </div>
 
       <div class="tab-panel" data-panel="numbers" hidden>
         <div class="data-tools">
-          <span>染色体数显示方式</span>
+          <span>数量显示方式</span>
           <div class="segmented">
-            <button id="numericBtn" class="active" type="button">数字</button>
-            <button id="ploidyBtn" type="button">n表示</button>
+            <button id="numericBtn" class="active" type="button">2n=4</button>
+            <button id="ploidyBtn" type="button">2n</button>
           </div>
         </div>
         <div class="data-grid">
@@ -496,65 +495,70 @@
         key: 'interphase',
         name: '分裂间期',
         short: '间期',
-        description: '细胞为分裂做准备，主要进行 DNA 复制和有关蛋白质合成。复制后，每条染色体由两条姐妹染色单体组成，但染色质仍较松散，细胞核保持完整。',
-        dynamic: '动态变化：染色质在细胞核内轻微舒展和摆动，表现 DNA 复制后为分裂做准备的连续状态。',
-        focus: '观察核膜是否完整、染色质是否松散。此时看不到清晰 X 形染色体。',
+        description: '有丝分裂前的间期主要完成三件事：①完成 DNA 复制；②合成有关的蛋白质；③细胞有适度的生长。DNA 加倍，但染色体数目不变。',
+        focus: '观察核膜、核仁是否完整，染色质是否呈松散丝状。此时 DNA 已复制，但还看不到清晰的染色体。',
         chromosomes: '4',
         ploidy: '2n',
         chromatids: '0→8',
+        chromatidsPloidy: '0→4n',
         dna: '4→8',
-        note: '2n=4 的动物细胞在复制后，染色体数仍为 4；增加的是染色单体数和 DNA 数。'
+        dnaPloidy: '2n→4n',
+        note: '间期完成 DNA 复制后，DNA 数加倍，染色体数目不变。'
       },
       {
         key: 'prophase',
         name: '前期',
         short: '前期',
-        description: '染色质逐渐螺旋化，凝缩成清晰可见的染色体；核膜逐渐解体，纺锤体开始形成。',
-        dynamic: '动态变化：松散染色质逐渐淡出，同时清晰 X 形染色体交叉叠化显现，核膜逐步消散。',
-        focus: '观察染色体是否开始变短变粗、核膜是否消失。',
+        description: '①染色质丝螺旋化、缩短变粗，形成染色体；②核仁解体，核膜消失；③纺锤体形成。',
+        focus: '观察染色质是否缩短变粗形成染色体，核仁和核膜是否消失，纺锤体是否开始形成。',
         chromosomes: '4',
         ploidy: '2n',
         chromatids: '8',
+        chromatidsPloidy: '4n',
         dna: '8',
+        dnaPloidy: '4n',
         note: '前期仍是 4 条染色体，每条含 2 条姐妹染色单体，因此染色单体数为 8。'
       },
       {
         key: 'metaphase',
         name: '中期',
         short: '中期',
-        description: '染色体的着丝粒排列在细胞中央的赤道板位置，纺锤丝连接着丝粒，为平均分配做准备。',
-        dynamic: '动态变化：4 条 X 形染色体整齐排列在中央虚线附近。',
-        focus: '观察染色体是否排列在细胞中央。赤道板是假想平面，不是真实结构。',
+        description: '染色体清晰可见，每条染色体的着丝粒排列在赤道板上。此时染色体形态稳定、数目清晰，便于观察。',
+        focus: '观察着丝粒是否排列在赤道板位置。赤道板是假想平面，实际不存在，细胞板才是实际存在的结构。',
         chromosomes: '4',
         ploidy: '2n',
         chromatids: '8',
+        chromatidsPloidy: '4n',
         dna: '8',
+        dnaPloidy: '4n',
         note: '中期是观察染色体形态和数目的最佳时期。'
       },
       {
         key: 'anaphase',
         name: '后期',
         short: '后期',
-        description: '着丝粒分裂，姐妹染色单体分开并成为独立染色体，分别向细胞两极移动。',
-        dynamic: '动态变化：X 形染色体分裂成 V 形结构，并带有向两极移动的拖尾效果。',
-        focus: '观察染色体数为什么从 4 变为 8：原因是着丝粒分裂，姐妹染色单体成为独立染色体。',
+        description: '每条染色体的着丝粒分裂成两个，姐妹染色单体分开，成为两条子染色体，由纺锤丝牵引着分别向细胞的两极移动。',
+        focus: '观察染色体数为什么从 4 变为 8：着丝粒分裂后，姐妹染色单体成为独立的子染色体。',
         chromosomes: '8',
         ploidy: '4n',
         chromatids: '0',
+        chromatidsPloidy: '0',
         dna: '8',
-        note: '后期染色体数短暂加倍，但 DNA 总量仍为 8。'
+        dnaPloidy: '4n',
+        note: '后期染色体数短暂加倍；注意着丝粒的分裂不是由纺锤丝牵引所致。'
       },
       {
         key: 'telophase',
         name: '末期',
         short: '末期',
-        description: '染色体到达两极后逐渐解螺旋，核膜重新形成；随后胞质分裂，形成两个遗传信息基本相同的子细胞。',
-        dynamic: '动态变化：中央出现分裂沟，两个子细胞逐渐形成。',
-        focus: '观察每个子细胞是否都恢复为 2n=4。',
+        description: '①染色体解螺旋形成染色质丝；②纺锤丝消失；③核膜、核仁重新出现。随后细胞质分裂，形成两个子细胞。',
+        focus: '观察染色体是否重新变为染色质丝，纺锤丝是否消失，核膜和核仁是否重新出现。',
         chromosomes: '每个子细胞 4',
         ploidy: '每个子细胞 2n',
         chromatids: '0',
+        chromatidsPloidy: '0',
         dna: '每个子细胞 4',
+        dnaPloidy: '每个子细胞 2n',
         note: '末期按每个子细胞统计：染色体 4，染色单体 0，核 DNA 4。'
       }
     ];
@@ -564,7 +568,6 @@
       stageBadge: document.getElementById('stageBadge'),
       phaseTitle: document.getElementById('phaseTitle'),
       phaseDescription: document.getElementById('phaseDescription'),
-      phaseCallout: document.getElementById('phaseCallout'),
       observeFocus: document.getElementById('observeFocus'),
       countNote: document.getElementById('countNote'),
       chromosomesValue: document.getElementById('chromosomesValue'),
@@ -1141,17 +1144,23 @@
       els.stageBadge.textContent = p.name;
       els.phaseTitle.textContent = `${p.name} · 阶段说明`;
       els.phaseDescription.textContent = p.description;
-      els.phaseCallout.innerHTML = `<strong>动态变化：</strong>${p.dynamic.replace('动态变化：', '')}`;
       els.observeFocus.innerHTML = `<strong>本阶段看点：</strong>${p.focus}`;
       if (p.key === 'prophase') {
         if (cellType === 'animal') {
-          els.phaseDescription.textContent = '染色质逐渐螺旋化并凝缩成染色体；核膜逐渐解体，中心体移向两极并组织形成纺锤体。';
-          els.phaseCallout.innerHTML = '<strong>动态变化：</strong>染色质与染色体交叉叠化过渡；动物细胞前期以中心体作为纺锤体组织中心，画面用一对中心粒符号表示。';
-          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>动物细胞有中心体；高等植物细胞通常不表现中心体结构。';
+          els.phaseDescription.textContent = '动物细胞有丝分裂前期：①染色质丝螺旋化、缩短变粗，形成染色体；②核仁解体，核膜消失；③中心体移向细胞两极，并组织形成纺锤体。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>染色体开始清晰出现，核仁和核膜消失；动物细胞由中心体参与组织纺锤体。';
         } else {
-          els.phaseDescription.textContent = '染色质逐渐螺旋化并凝缩成染色体；核膜逐渐解体，细胞两极发出纺锤丝形成纺锤体。';
-          els.phaseCallout.innerHTML = '<strong>动态变化：</strong>染色质与染色体交叉叠化过渡；植物细胞前期不显示中心体，而是从细胞两极发出纺锤丝。';
-          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>植物细胞前期没有中心体符号，纺锤体由两极发出的纺锤丝形成。';
+          els.phaseDescription.textContent = '植物细胞有丝分裂前期：①染色质丝螺旋化、缩短变粗，形成染色体；②核仁解体，核膜消失；③细胞两极发出纺锤丝，形成纺锤体。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>染色体开始清晰出现，核仁和核膜消失；植物细胞由细胞两极发出纺锤丝形成纺锤体。';
+        }
+      }
+      if (p.key === 'telophase') {
+        if (cellType === 'animal') {
+          els.phaseDescription.textContent = '动物细胞有丝分裂末期：①染色体解螺旋形成染色质丝；②纺锤丝消失；③核膜、核仁重新出现；随后细胞膜从中部向内凹陷，缢裂形成两个子细胞。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>染色体重新成为染色质丝，纺锤丝消失，核膜和核仁重新出现；动物细胞通过细胞膜向内凹陷完成胞质分裂。';
+        } else {
+          els.phaseDescription.textContent = '植物细胞有丝分裂末期：①染色体解螺旋形成染色质丝；②纺锤丝消失；③核膜、核仁重新出现；随后细胞中央出现细胞板，细胞板逐渐形成新的细胞壁。';
+          els.observeFocus.innerHTML = '<strong>本阶段看点：</strong>染色体重新成为染色质丝，纺锤丝消失，核膜和核仁重新出现；植物细胞中央形成细胞板，最终成为新的细胞壁。';
         }
       }
       els.countNote.textContent = p.note;
@@ -1159,8 +1168,8 @@
         els.countNote.textContent = `${p.note} 植物细胞末期在赤道板位置形成细胞板，细胞板最终发育为新的细胞壁。`;
       }
       setMetric(els.chromosomesValue, els.metricChromosomes, displayMode === 'ploidy' ? p.ploidy : p.chromosomes);
-      setMetric(els.chromatidsValue, els.metricChromatids, p.chromatids);
-      setMetric(els.dnaValue, els.metricDna, p.dna);
+      setMetric(els.chromatidsValue, els.metricChromatids, displayMode === 'ploidy' ? p.chromatidsPloidy : p.chromatids);
+      setMetric(els.dnaValue, els.metricDna, displayMode === 'ploidy' ? p.dnaPloidy : p.dna);
     }
 
     function setTab(tab) {
