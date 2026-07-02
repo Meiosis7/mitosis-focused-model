@@ -422,15 +422,16 @@
       .hero-header { top: 16px; left: 18px; right: 18px; gap: 10px; }
       h1 { font-size: clamp(24px, 8vw, 34px); }
       .stage-controller {
-        grid-template-columns: 36px minmax(94px, 1fr) 36px;
-        min-width: 190px;
-        padding: 6px;
+        grid-template-columns: 30px minmax(76px, 1fr) 30px;
+        min-width: 154px;
+        padding: 4px;
+        border-radius: 8px;
       }
-      .stage-controller button { width: 36px; height: 36px; font-size: 20px; }
-      .stage-name { font-size: 15px; }
-      .stage-control-wrap { gap: 6px; }
-      .cell-type-switch { padding: 3px; }
-      .cell-type-switch button { min-height: 30px; font-size: 12px; }
+      .stage-controller button { width: 30px; height: 30px; border-radius: 7px; font-size: 18px; }
+      .stage-name { font-size: 13px; }
+      .stage-control-wrap { gap: 4px; }
+      .cell-type-switch { width: 260px; max-width: calc(100vw - 52px); padding: 3px; border-radius: 8px; }
+      .cell-type-switch button { min-height: 25px; border-radius: 6px; font-size: 10.5px; }
       .observe-grid {
         grid-template-columns: 1fr;
       }
@@ -453,8 +454,9 @@
     @media (max-width: 520px) {
       .stage-card { height: 52vh; min-height: 340px; max-height: 410px; }
       h1 { font-size: clamp(22px, 7.2vw, 30px); }
-      .stage-controller { min-width: 178px; }
-      .cell-type-switch button { font-size: 11px; }
+      .stage-controller { min-width: 146px; }
+      .cell-type-switch { width: 244px; }
+      .cell-type-switch button { font-size: 10px; }
     }
   </style>
 </head>
@@ -577,7 +579,7 @@
         name: '后期',
         short: '后期',
         description: '每条染色体的着丝粒分裂成两个，姐妹染色单体分开，成为两条子染色体，由纺锤丝牵引着分别向细胞的两极移动。',
-        focus: '观察染色体数为什么从 4 变为 8：着丝粒分裂后，姐妹染色单体成为独立的子染色体。',
+        focus: '染色体数从4变为8的原因：着丝粒分裂后，姐妹染色单体成为独立的子染色体。',
         chromosomes: '8',
         ploidy: '4n',
         chromatids: '0',
@@ -694,7 +696,7 @@
       const narrow = w < 620;
       return {
         cx: w / 2,
-        cy: h * (narrow ? .58 : .56),
+        cy: h * (narrow ? .63 : .56),
         rx: Math.min(w * (narrow ? .43 : .39), size * .47),
         ry: Math.min(h * (narrow ? .28 : .36), size * (narrow ? .29 : .38)),
         nr: Math.min(size * (narrow ? .18 : .21), 175)
