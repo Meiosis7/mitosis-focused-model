@@ -124,20 +124,11 @@
       margin-bottom: 8px;
     }
 
-    .book-title {
-      display: block;
-      position: absolute;
-      top: 0;
-      right: 0;
-      max-width: min(46vw, 460px);
-      text-align: right;
-    }
-
     .stage-controller {
       display: grid;
       grid-template-columns: 42px minmax(112px, 1fr) 42px;
       align-items: center;
-      min-width: 238px;
+      width: 100%;
       padding: 8px;
       border-radius: 10px;
       background: rgba(89, 240, 176, 0.16);
@@ -150,9 +141,18 @@
 
     .stage-control-wrap {
       display: grid;
+      width: clamp(238px, 24vw, 286px);
+      flex: 0 0 clamp(238px, 24vw, 286px);
       gap: 8px;
+      justify-items: stretch;
       pointer-events: auto;
-      margin-top: 28px;
+    }
+
+    .stage-control-wrap .book-title {
+      justify-self: end;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-align: right;
     }
 
     .stage-controller button {
@@ -175,6 +175,9 @@
     }
 
     .stage-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
       text-align: center;
       font-size: 17px;
       font-weight: 950;
@@ -193,6 +196,7 @@
 
     .cell-type-switch button {
       appearance: none;
+      min-width: 0;
       min-height: 34px;
       border: 0;
       border-radius: 7px;
@@ -429,25 +433,33 @@
     .mark.yellow { color: var(--yellow); background: var(--yellow); }
 
     @media (max-width: 820px) {
-      .app { padding: 10px; gap: 14px; }
+      .app { padding: clamp(8px, 2.4vw, 14px); gap: 12px; }
       .stage-card { height: 56vh; min-height: 390px; max-height: 460px; }
-      .hero-header { flex-direction: column; }
-      .stage-control-wrap { align-self: flex-end; justify-items: end; }
-      .hero-header { top: 16px; left: 18px; right: 18px; gap: 10px; }
-      h1 { font-size: clamp(24px, 8vw, 34px); }
-      .book-title { font-size: 11px; max-width: 48vw; }
-      .chapter-title { font-size: 12px; margin-bottom: 6px; }
+      .hero-header {
+        top: 14px;
+        left: 16px;
+        right: 16px;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      h1 { font-size: clamp(26px, 7.8vw, 34px); }
+      .book-title { font-size: 12px; }
+      .chapter-title { font-size: 13px; margin-bottom: 6px; }
       .stage-controller {
-        grid-template-columns: 24px minmax(66px, 1fr) 24px;
-        min-width: 126px;
-        padding: 3px;
+        grid-template-columns: 30px minmax(82px, 1fr) 30px;
+        padding: 5px;
         border-radius: 8px;
       }
-      .stage-controller button { width: 24px; height: 24px; border-radius: 6px; font-size: 15px; }
-      .stage-name { font-size: 12px; }
-      .stage-control-wrap { gap: 3px; margin-top: 22px; }
-      .cell-type-switch { width: 214px; max-width: calc(100vw - 52px); padding: 2px; border-radius: 7px; }
-      .cell-type-switch button { min-height: 22px; border-radius: 5px; font-size: 9.5px; }
+      .stage-controller button { width: 30px; height: 30px; border-radius: 7px; font-size: 18px; }
+      .stage-name { font-size: 14px; }
+      .stage-control-wrap {
+        width: clamp(178px, 48vw, 238px);
+        flex-basis: clamp(178px, 48vw, 238px);
+        gap: 4px;
+        justify-self: end;
+      }
+      .cell-type-switch { width: 100%; padding: 3px; border-radius: 8px; }
+      .cell-type-switch button { min-height: 28px; border-radius: 6px; font-size: 11px; }
       .observe-grid {
         grid-template-columns: 1fr;
       }
@@ -469,12 +481,34 @@
 
     @media (max-width: 520px) {
       .stage-card { height: 52vh; min-height: 340px; max-height: 410px; }
-      h1 { font-size: clamp(22px, 7.2vw, 30px); }
-      .book-title { font-size: 10px; max-width: 48vw; }
-      .chapter-title { font-size: 11px; }
-      .stage-controller { min-width: 122px; }
-      .cell-type-switch { width: 206px; }
-      .cell-type-switch button { font-size: 9px; }
+      .hero-header {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        gap: 8px;
+      }
+      h1 { font-size: clamp(24px, 7.4vw, 30px); }
+      .hero-header h1 { max-width: 4.1em; }
+      .stage-control-wrap {
+        width: clamp(154px, 49vw, 204px);
+        flex-basis: clamp(154px, 49vw, 204px);
+      }
+      .stage-controller {
+        grid-template-columns: 26px minmax(62px, 1fr) 26px;
+        gap: 4px;
+        padding: 4px;
+      }
+      .stage-controller button {
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
+      }
+      .stage-name { font-size: 12px; }
+      .cell-type-switch button {
+        line-height: 1.08;
+        white-space: normal;
+        font-size: clamp(9px, 2.7vw, 11px);
+      }
     }
   </style>
 </head>
@@ -485,10 +519,10 @@
       <header class="hero-header">
         <div>
           <div class="chapter-title">必修1 细胞的增殖</div>
-          <div class="book-title" id="bookTitle">一生儿·《高中生物一本通》</div>
           <h1>有丝分裂动态模型</h1>
         </div>
         <div class="stage-control-wrap">
+          <div class="book-title" id="bookTitle">一生儿·《高中生物一本通》</div>
           <div class="stage-controller" aria-label="时期控制器">
             <button id="stagePrevBtn" type="button" aria-label="上一时期">‹</button>
             <div class="stage-name" id="stageBadge">分裂间期</div>
